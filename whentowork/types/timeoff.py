@@ -13,13 +13,13 @@ class TimeOff(TypedDict):
     :param EMPLOYEE_NUMBER: ID for employee (Unique over employees in the company)
     :param DESCRIPTION: Description of time off
     :param PARTIAL_DAY: Y if partial day off N if full day off
-    :param START_DATE:
-    :param START_TIME:
-    :param END_DATE:
-    :param END_TIME:
-    :param WHEN_REQUESTED_TS:
-    :param LAST_CHANGED_TS:
-    :param LAST_CHANGED_BY:
+    :param START_DATE: Date of the start of time off
+    :param START_TIME: Time of the start of time off
+    :param END_DATE: Date of the end of time off
+    :param END_TIME: Time of the end of time off
+    :param WHEN_REQUESTED_TS: Timestamp of when the time off was first requested
+    :param LAST_CHANGED_TS: Timestamp of when the time off was last changed
+    :param LAST_CHANGED_BY: Name of User who last changed time off
     """
     COMPANY_ID: int
     TIMEOFF_ID: int
@@ -28,7 +28,7 @@ class TimeOff(TypedDict):
     LAST_NAME: str
     EMPLOYEE_NUMBER: int
     DESCRIPTION: str
-    PARTIAL_DAY: str
+    PARTIAL_DAY: bool
     START_DATE: str
     START_TIME: str
     END_DATE: str
