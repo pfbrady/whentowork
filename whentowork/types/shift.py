@@ -5,38 +5,38 @@ class Shift(TypedDict):
     """
     Type Format for Shift
 
-    :param COMPANY_ID:
-    :param SHIFT_ID:
-    :param PUBLISHED:
-    :param W2W_EMPLOYEE_ID:
-    :param FIRST_NAME:
-    :param LAST_NAME:
-    :param EMPLOYEE_NUMBER:
-    :param START_DATE:
-    :param START_TIME:
-    :param END_DATE:
-    :param END_TIME:
-    :param DURATION:
-    :param DESCRIPTION:
-    :param POSITION_ID:
-    :param POSITION_NAME:
-    :param CATEGORY_ID:
-    :param CATEGORY_NAME:
-    :param CATEGORY_SHORT:
-    :param COLOR_ID:
-    :param PAY_RATE:
+    :param COMPANY_ID: Unique ID for a company
+    :param SHIFT_ID: ID for a shift (Unique to the company)
+    :param PUBLISHED: Y if shift is published, N if shift is not published
+    :param W2W_EMPLOYEE_ID: ID for an employee (Unique over employees in W2W system)
+    :param FIRST_NAME: First name of employee
+    :param LAST_NAME: Last name of employee
+    :param EMPLOYEE_NUMBER: ID for an employee (Unique over employees in a company)
+    :param START_DATE: Start Date of shift
+    :param START_TIME: Start Time of shift
+    :param END_DATE: End Date of shift
+    :param END_TIME: End Time of shift
+    :param DURATION: Duration of shift in hours
+    :param DESCRIPTION: Description of shift
+    :param POSITION_ID: ID for a position (Unique to the company)
+    :param POSITION_NAME: Name of Position
+    :param CATEGORY_ID: ID for a category (Unique to the company)
+    :param CATEGORY_NAME: Name of Category
+    :param CATEGORY_SHORT: Abbreviated name of Category
+    :param COLOR_ID: ID for color of shift
+    :param PAY_RATE: Hourly Pay Rate of the shift
     :param POSITION_CUSTOM1:
     :param POSITION_CUSTOM2:
     :param POSITION_CUSTOM3:
     :param CATEGORY_CUSTOM1:
     :param CATEGORY_CUSTOM2:
     :param CATEGORY_CUSTOM3:
-    :param LAST_CHANGED_TS:
-    :param LAST_CHANGED_BY:
+    :param LAST_CHANGED_TS: Timestamp of the last change
+    :param LAST_CHANGED_BY: Name of user who last changed
     """
     COMPANY_ID: int
     SHIFT_ID: int
-    PUBLISHED: str
+    PUBLISHED: bool
     W2W_EMPLOYEE_ID: int
     FIRST_NAME: str
     LAST_NAME: str
