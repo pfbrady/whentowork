@@ -1,8 +1,8 @@
 from logging import Logger
-from typing import TYPE_CHECKING, Union, List
+from typing import Union, List
 from datetime import date
 from .adapter import Adapter
-from .models import Employee, Category, Position, Shift
+from .models import Employee, Category, Position, Shift, TimeOff
 
 
 class Client:
@@ -34,6 +34,9 @@ class Client:
         shift.position = self.get_position_by_id(shift.position_id)
         shift.category = self.get_category_by_id(shift.category_id)
 
+    def _add_emp_to_timeoff(self, timeoff: TimeOff):
+        timeoff.employee = self.get_employee_by_id(timeoff.w2w_employee_id)
+
     def get_employee_by_id(self, w2w_employee_id: int) -> Union[Employee, None]:
         for employee in self.employees:
             if w2w_employee_id == employee.w2w_employee_id:
@@ -58,4 +61,8 @@ class Client:
             self._add_emp_pos_cat_to_shift(shift)
         return shifts
 
-
+    def get_timeoff_by_date(self, start_date: date, end_date: date) -> List[TimeOff]:
+        timeoff_requests = self._adapter.get_from_endpoint('ApprovedTimeOff', start_date, end_date)
+        for request in timeoff_requests:
+            self._add_emp_to_timeoff(request)
+        return timeoff_requests

@@ -3,16 +3,17 @@ import requests.packages
 import logging
 from json import JSONDecodeError
 from datetime import date
-from typing import List, Dict, Type
-from .models import Result, Employee, Position, Category, Shift
+from typing import Dict, Type
+from .models import Result, Employee, Position, Category, Shift, TimeOff
 from .exceptions.w2w_bad_request import W2WBadRequestException
 from .exceptions.w2w_bad_type import W2WBadType
 
-endpoint_return_classes: dict[str, Type[Position | Employee | Category]] = {
+endpoint_return_classes: dict[str, Type[Position | Employee | Category | TimeOff]] = {
     'EmployeeList': Employee,
     'PositionList': Position,
     'CategoryList': Category,
-    'AssignedShiftList': Shift
+    'AssignedShiftList': Shift,
+    'ApprovedTimeOff': TimeOff
 }
 
 
@@ -63,7 +64,7 @@ class Adapter:
         self._logger.error(msg=log_line)
         raise W2WBadRequestException(f"{response.status_code}: {response.reason}")
 
-    def get(self, endpoint: str, ep_params: Dict = None) -> Result:
+    def _get(self, endpoint: str, ep_params: Dict = None) -> Result:
         return self._do(http_method='GET', endpoint=endpoint, ep_params=ep_params)
 
     def get_from_endpoint(self, endpoint: str, start_date: date = None, end_date: date = None):
@@ -75,5 +76,5 @@ class Adapter:
             ep_params = {'start_date': start_date.strftime('%m/%d/%Y'), 'end_date': end_date.strftime('%m/%d/%Y')}
         else:
             ep_params = None
-        stripped_data = self.get(endpoint=endpoint, ep_params=ep_params).data[endpoint]
+        stripped_data = self._get(endpoint=endpoint, ep_params=ep_params).data[endpoint]
         return [endpoint_return_classes[endpoint](data=item) for item in stripped_data]

@@ -1,9 +1,10 @@
-from typing import List, Dict, TYPE_CHECKING
+from typing import List, Dict
 from datetime import datetime
 from .types.employee import Employee as EmployeePayload
 from .types.position import Position as PositionPayload
 from .types.category import Category as CategoryPayload
 from .types.shift import Shift as ShiftPayload
+from .types.timeoff import TimeOff as TimeOffPayload
 
 
 class Result:
@@ -129,19 +130,51 @@ class Shift:
 
     def _update(self, data: ShiftPayload) -> None:
         self.company_id = int(data['COMPANY_ID'])
-        self.shift_id = int(data['COMPANY_ID'])
-        self.published = data['COMPANY_ID']
+        self.shift_id = int(data['SHIFT_ID'])
+        self.published = True if data['PUBLISHED'] == 'Y' else False
         self.w2w_employee_id = int(data['W2W_EMPLOYEE_ID'])
         self.start_datetime = datetime.strptime(f"{data['START_DATE']} {self._handle_w2w_api_time(data['START_TIME'])}",
                                                 '%m/%d/%Y %H:%M%p')
         self.end_datetime = datetime.strptime(f"{data['END_DATE']} {self._handle_w2w_api_time(data['END_TIME'])}",
                                               '%m/%d/%Y %H:%M%p')
-        self.duration = data['DURATION']
+        self.duration = int(float(data['DURATION']))
         self.description = data['DESCRIPTION']
         self.position_id = int(data['POSITION_ID'])
         self.category_id = int(data['CATEGORY_ID']) if data['CATEGORY_ID'] else 0
-        self.color_id = data['COLOR_ID']
+        self.color_id = int(data['COLOR_ID'])
         self.pay_rate = data.get('PAY_RATE', None)
+        self.last_changed_ts = datetime.strptime(data['LAST_CHANGED_TS'], '%m/%d/%Y %H:%M:%S %p') \
+            if data.get('LAST_CHANGED_TS', None) else None
+        self.last_changed_by = data.get('LAST_CHANGED_BY', None)
+
+
+class TimeOff:
+    def __init__(self, data: TimeOffPayload) -> None:
+        self.employee = None
+        self._update(data)
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, TimeOff) and other.timeoff_id == self.timeoff_id
+
+    def __ne__(self, other: object) -> bool:
+        return not self.__eq__(other)
+
+    @staticmethod
+    def _handle_w2w_api_time(w2w_time: str):
+        return w2w_time if ':' in w2w_time else f'{w2w_time[:-2]}:00{w2w_time[-2:]}'
+
+    def _update(self, data: TimeOffPayload) -> None:
+        self.company_id = int(data['COMPANY_ID'])
+        self.timeoff_id = int(data['TIMEOFF_ID'])
+        self.w2w_employee_id = int(data['W2W_EMPLOYEE_ID'])
+        self.description = data['DESCRIPTION']
+        self.partial_day = True if data['PARTIAL_DAY'] == 'Y' else False
+        self.start_datetime = datetime.strptime(f"{data['START_DATE']} {self._handle_w2w_api_time(data['START_TIME'])}",
+                                                '%m/%d/%Y %H:%M%p')
+        self.end_datetime = datetime.strptime(f"{data['END_DATE']} {self._handle_w2w_api_time(data['END_TIME'])}",
+                                              '%m/%d/%Y %H:%M%p')
+        self.when_requested_ts = datetime.strptime(data['WHEN_REQUESTED_TS'], '%m/%d/%Y %H:%M:%S %p') \
+            if data.get('LAST_CHANGED_TS', None) else None
         self.last_changed_ts = datetime.strptime(data['LAST_CHANGED_TS'], '%m/%d/%Y %H:%M:%S %p') \
             if data.get('LAST_CHANGED_TS', None) else None
         self.last_changed_by = data.get('LAST_CHANGED_BY', None)
