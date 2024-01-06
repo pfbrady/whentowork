@@ -29,7 +29,8 @@ class Client:
     def _update_categories(self):
         self.categories = self._adapter.get_from_endpoint('CategoryList')
 
-    def _add_pos_cat_to_shift(self, shift: Shift):
+    def _add_emp_pos_cat_to_shift(self, shift: Shift):
+        shift.employee = self.get_employee_by_id(shift.w2w_employee_id)
         shift.position = self.get_position_by_id(shift.position_id)
         shift.category = self.get_category_by_id(shift.category_id)
 
@@ -54,7 +55,7 @@ class Client:
     def get_shifts_by_date(self, start_date: date, end_date: date) -> List[Shift]:
         shifts = self._adapter.get_from_endpoint('AssignedShiftList', start_date, end_date)
         for shift in shifts:
-            self._add_pos_cat_to_shift(shift)
+            self._add_emp_pos_cat_to_shift(shift)
         return shifts
 
 

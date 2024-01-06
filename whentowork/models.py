@@ -112,6 +112,7 @@ class Category:
 
 class Shift:
     def __init__(self, data: ShiftPayload) -> None:
+        self.employee = None
         self.position = None
         self.category = None
         self._update(data)
@@ -131,8 +132,6 @@ class Shift:
         self.shift_id = int(data['COMPANY_ID'])
         self.published = data['COMPANY_ID']
         self.w2w_employee_id = int(data['W2W_EMPLOYEE_ID'])
-        self.first_name = data['FIRST_NAME']
-        self.last_name = data['LAST_NAME']
         self.start_datetime = datetime.strptime(f"{data['START_DATE']} {self._handle_w2w_api_time(data['START_TIME'])}",
                                                 '%m/%d/%Y %H:%M%p')
         self.end_datetime = datetime.strptime(f"{data['END_DATE']} {self._handle_w2w_api_time(data['END_TIME'])}",
