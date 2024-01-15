@@ -33,8 +33,8 @@ class Employee:
 
     def _update(self, data: EmployeePayload) -> None:
         self.company_id = int(data['COMPANY_ID'])
-        self.w2w_employee_id = int(data['W2W_EMPLOYEE_ID']) if data['W2W_EMPLOYEE_ID'] else 0
-        self.employee_number = int(data['EMPLOYEE_NUMBER']) if data['EMPLOYEE_NUMBER'] else 0
+        self.w2w_employee_id = int(data['W2W_EMPLOYEE_ID'])
+        self.employee_number = int(data.get('EMPLOYEE_NUMBER', 0))
         self.first_name = data['FIRST_NAME']
         self.last_name = data['LAST_NAME']
         self.primary_phone = data['PHONE']
@@ -44,7 +44,7 @@ class Employee:
             self.emails = [data['EMAILS']]
         else:
             self.emails = data['EMAILS'].split(',')
-        self.last_sign_in = datetime.strptime(data['LAST_SIGN_IN'], '%m/%d/%Y %H:%M:%S %p') \
+        self.last_sign_in = datetime.strptime(data['LAST_SIGN_IN'], '%m/%d/%Y %I:%M:%S %p') \
             if data['LAST_SIGN_IN'] else None
         self.sign_in_count = int(data['SIGN_IN_COUNT'])
         self.address = data['ADDRESS']
@@ -57,12 +57,12 @@ class Employee:
         self.max_shifts_day = int(data['MAX_SHIFTS_DAY'])
         self.max_hours_week = int(data['MAX_HRS_WEEK'])
         self.max_days_week = int(data['MAX_DAYS_WEEK'])
-        self.hire_date = datetime.strptime(data['HIRE_DATE'], '%m/%d/%Y') if data['HIRE_DATE'] else None
-        self.status = int(data['STATUS']) if data['STATUS'] else 0
+        self.hire_date = datetime.strptime(data['HIRE_DATE'], '%m/%d/%Y').date() if data['HIRE_DATE'] else None
+        self.status = int(data['STATUS'])
         self.priority_group = int(data['PRIORITY_GROUP'])
         self.custom_field_1 = data['CUSTOM_1']
         self.custom_field_2 = data['CUSTOM_2']
-        self.biweekly_target_hours = int(data['BIWEEKLY_TARGET_HRS']) if data['BIWEEKLY_TARGET_HRS'] else 0
+        self.biweekly_target_hours = int(data['BIWEEKLY_TARGET_HRS']) if data['BIWEEKLY_TARGET_HRS'] else None
         self.pay_rate = data.get('PAY_RATE', None)
         self.alert_date = data['ALERT_DATE']
         self.next_alert = data['NEXT_ALERT']
@@ -85,8 +85,7 @@ class Position:
         self.position_custom1 = data['POSITION_CUSTOM1']
         self.position_custom2 = data['POSITION_CUSTOM2']
         self.position_custom3 = data['POSITION_CUSTOM3']
-        self.last_changed_ts = datetime.strptime(data['LAST_CHANGED_TS'], '%m/%d/%Y %H:%M:%S %p') \
-            if data.get('LAST_CHANGED_TS', None) else None
+        self.last_changed_ts = datetime.strptime(data['LAST_CHANGED_TS'], '%m/%d/%Y %I:%M:%S %p')
 
 
 class Category:
@@ -107,8 +106,7 @@ class Category:
         self.category_custom1 = data['CATEGORY_CUSTOM1']
         self.category_custom2 = data['CATEGORY_CUSTOM2']
         self.category_custom3 = data['CATEGORY_CUSTOM3']
-        self.last_changed_ts = datetime.strptime(data['LAST_CHANGED_TS'], '%m/%d/%Y %H:%M:%S %p') \
-            if data.get('LAST_CHANGED_TS', None) else None
+        self.last_changed_ts = datetime.strptime(data['LAST_CHANGED_TS'], '%m/%d/%Y %I:%M:%S %p')
 
 
 class Shift:
@@ -134,17 +132,16 @@ class Shift:
         self.published = True if data['PUBLISHED'] == 'Y' else False
         self.w2w_employee_id = int(data['W2W_EMPLOYEE_ID'])
         self.start_datetime = datetime.strptime(f"{data['START_DATE']} {self._handle_w2w_api_time(data['START_TIME'])}",
-                                                '%m/%d/%Y %H:%M%p')
+                                                '%m/%d/%Y %I:%M%p')
         self.end_datetime = datetime.strptime(f"{data['END_DATE']} {self._handle_w2w_api_time(data['END_TIME'])}",
-                                              '%m/%d/%Y %H:%M%p')
+                                              '%m/%d/%Y %I:%M%p')
         self.duration = int(float(data['DURATION']))
         self.description = data['DESCRIPTION']
         self.position_id = int(data['POSITION_ID'])
         self.category_id = int(data['CATEGORY_ID']) if data['CATEGORY_ID'] else 0
         self.color_id = int(data['COLOR_ID'])
         self.pay_rate = data.get('PAY_RATE', None)
-        self.last_changed_ts = datetime.strptime(data['LAST_CHANGED_TS'], '%m/%d/%Y %H:%M:%S %p') \
-            if data.get('LAST_CHANGED_TS', None) else None
+        self.last_changed_ts = datetime.strptime(data['LAST_CHANGED_TS'], '%m/%d/%Y %I:%M:%S %p')
         self.last_changed_by = data.get('LAST_CHANGED_BY', None)
 
 
@@ -170,11 +167,10 @@ class TimeOff:
         self.description = data['DESCRIPTION']
         self.partial_day = True if data['PARTIAL_DAY'] == 'Y' else False
         self.start_datetime = datetime.strptime(f"{data['START_DATE']} {self._handle_w2w_api_time(data['START_TIME'])}",
-                                                '%m/%d/%Y %H:%M%p')
+                                                '%m/%d/%Y %I:%M%p')
         self.end_datetime = datetime.strptime(f"{data['END_DATE']} {self._handle_w2w_api_time(data['END_TIME'])}",
-                                              '%m/%d/%Y %H:%M%p')
-        self.when_requested_ts = datetime.strptime(data['WHEN_REQUESTED_TS'], '%m/%d/%Y %H:%M:%S %p') \
+                                              '%m/%d/%Y %I:%M%p')
+        self.when_requested_ts = datetime.strptime(data['WHEN_REQUESTED_TS'], '%m/%d/%Y %I:%M:%S %p') \
             if data.get('LAST_CHANGED_TS', None) else None
-        self.last_changed_ts = datetime.strptime(data['LAST_CHANGED_TS'], '%m/%d/%Y %H:%M:%S %p') \
-            if data.get('LAST_CHANGED_TS', None) else None
-        self.last_changed_by = data.get('LAST_CHANGED_BY', None)
+        self.last_changed_ts = datetime.strptime(data['LAST_CHANGED_TS'], '%m/%d/%Y %I:%M:%S %p')
+        self.last_changed_by = data['LAST_CHANGED_BY']
