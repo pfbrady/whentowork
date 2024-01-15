@@ -34,7 +34,7 @@ class Employee:
     def _update(self, data: EmployeePayload) -> None:
         self.company_id = int(data['COMPANY_ID'])
         self.w2w_employee_id = int(data['W2W_EMPLOYEE_ID'])
-        self.employee_number = int(data.get('EMPLOYEE_NUMBER', 0))
+        self.employee_number = int(data['EMPLOYEE_NUMBER']) if data['EMPLOYEE_NUMBER'] else 0
         self.first_name = data['FIRST_NAME']
         self.last_name = data['LAST_NAME']
         self.primary_phone = data['PHONE']
@@ -58,14 +58,14 @@ class Employee:
         self.max_hours_week = int(data['MAX_HRS_WEEK'])
         self.max_days_week = int(data['MAX_DAYS_WEEK'])
         self.hire_date = datetime.strptime(data['HIRE_DATE'], '%m/%d/%Y').date() if data['HIRE_DATE'] else None
-        self.status = int(data['STATUS'])
+        self.status = int(data['STATUS']) if data['STATUS'] else 0
         self.priority_group = int(data['PRIORITY_GROUP'])
         self.custom_field_1 = data['CUSTOM_1']
         self.custom_field_2 = data['CUSTOM_2']
         self.biweekly_target_hours = int(data['BIWEEKLY_TARGET_HRS']) if data['BIWEEKLY_TARGET_HRS'] else None
         self.pay_rate = data.get('PAY_RATE', None)
-        self.alert_date = data['ALERT_DATE']
-        self.next_alert = data['NEXT_ALERT']
+        self.alert_date = datetime.strptime(data['ALERT_DATE'], '%m/%d/%Y').date() if data['ALERT_DATE'] else None
+        self.next_alert = datetime.strptime(data['NEXT_ALERT'], '%m/%d/%Y').date() if data['NEXT_ALERT'] else None
 
 
 class Position:
@@ -106,7 +106,8 @@ class Category:
         self.category_custom1 = data['CATEGORY_CUSTOM1']
         self.category_custom2 = data['CATEGORY_CUSTOM2']
         self.category_custom3 = data['CATEGORY_CUSTOM3']
-        self.last_changed_ts = datetime.strptime(data['LAST_CHANGED_TS'], '%m/%d/%Y %I:%M:%S %p')
+        self.last_changed_ts = datetime.strptime(data['LAST_CHANGED_TS'], '%m/%d/%Y %I:%M:%S %p') \
+            if data.get('LAST_CHANGED_TS') else None
 
 
 class Shift:
