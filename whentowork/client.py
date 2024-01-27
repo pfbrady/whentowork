@@ -14,68 +14,55 @@ class Client:
         self.categories: List[Category] = []
         self._init_company()
 
-    def _init_company(self):
+    def _init_company(self) -> None:
         self._init_employees()
         self.company_id = self.employees[0].company_id
         self._init_positions()
         self._init_categories()
 
-    def _init_employees(self):
+    def _init_employees(self) -> None:
         self.employees = self._adapter.get_from_endpoint('EmployeeList')
 
-    def _update_employees(self):
+    def _update_employees(self) -> bool:
         updated_employees = self._adapter.get_from_endpoint('EmployeeList')
+        updated = False
         for employee in updated_employees:
             if employee not in self.employees:
                 self.employees.append(employee)
+                updated = True
+        return updated
 
-    def _init_positions(self):
+    def _init_positions(self) -> None:
         self.positions = self._adapter.get_from_endpoint('PositionList')
 
-    def _update_positions(self):
+    def _update_positions(self) -> bool:
         updated_positions = self._adapter.get_from_endpoint('PositionList')
+        updated = False
         for position in updated_positions:
             if position not in self.positions:
                 self.positions.append(position)
+                updated = True
+        return updated
 
-    def _update_categories(self):
+    def _update_categories(self) -> bool:
         updated_categories = self._adapter.get_from_endpoint('CategoryList')
+        updated = False
         for category in updated_categories:
             if category not in self.categories:
                 self.categories.append(category)
+                updated = True
+        return updated
 
-    def _init_categories(self):
+    def _init_categories(self) -> None:
         self.categories = self._adapter.get_from_endpoint('CategoryList')
 
-    def _add_emp_pos_cat_to_shift(self, shift: Shift):
-        employee = self.get_employee_by_id(shift.w2w_employee_id)
-        if employee:
-            shift.employee = employee
-        else:
-            self._update_employees()
-            shift.employee = self.get_employee_by_id(shift.w2w_employee_id)
+    def _add_emp_pos_cat_to_shift(self, shift: Shift) -> None:
+        shift.employee = self.get_employee_by_id(shift.w2w_employee_id)
+        shift.position = self.get_position_by_id(shift.position_id)
+        shift.category = self.get_category_by_id(shift.category_id)
 
-        position = self.get_position_by_id(shift.position_id)
-        if position:
-            shift.position = position
-        else:
-            self._update_positions()
-            shift.position = self.get_position_by_id(shift.position_id)
-
-        category = self.get_category_by_id(shift.category_id)
-        if category:
-            shift.category = category
-        else:
-            self._update_categories()
-            shift.category = self.get_category_by_id(shift.category_id)
-
-    def _add_emp_to_timeoff(self, timeoff: TimeOff):
-        employee = self.get_employee_by_id(timeoff.w2w_employee_id)
-        if employee:
-            timeoff.employee = employee
-        else:
-            self._update_employees()
-            timeoff.employee = self.get_employee_by_id(timeoff.w2w_employee_id)
+    def _add_emp_to_timeoff(self, timeoff: TimeOff) -> None:
+        timeoff.employee = self.get_employee_by_id(timeoff.w2w_employee_id)
 
     def get_employee_by_id(self, w2w_employee_id: int) -> Union[Employee, None]:
         if not isinstance(w2w_employee_id, int):
@@ -83,6 +70,12 @@ class Client:
         for employee in self.employees:
             if w2w_employee_id == employee.w2w_employee_id:
                 return employee
+
+        updated = self._update_employees()
+        if updated:
+            for employee in self.employees:
+                if w2w_employee_id == employee.w2w_employee_id:
+                    return employee
         return None
 
     def get_position_by_id(self, position_id: int) -> Union[Position, None]:
@@ -91,6 +84,12 @@ class Client:
         for position in self.positions:
             if position_id == position.position_id:
                 return position
+
+        updated = self._update_positions()
+        if updated:
+            for position in self.positions:
+                if position_id == position.position_id:
+                    return position
         return None
 
     def get_category_by_id(self, category_id: int) -> Union[Category, None]:
@@ -99,6 +98,12 @@ class Client:
         for category in self.categories:
             if category_id == category.category_id:
                 return category
+
+        updated = self._update_categories()
+        if updated:
+            for category in self.categories:
+                if category_id == category.category_id:
+                    return category
         return None
 
     def get_shifts_by_date(self, start_date: date, end_date: date) -> List[Shift]:
