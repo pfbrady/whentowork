@@ -50,6 +50,7 @@ class Client:
 
     def _update_categories(self) -> bool:
         updated_categories = self._adapter.get_from_endpoint('CategoryList')
+        print(updated_categories)
         updated = False
         for category in updated_categories:
             if category not in self.categories:
@@ -68,6 +69,8 @@ class Client:
     def get_employee_by_id(self, w2w_employee_id: int) -> Optional[Employee]:
         if not isinstance(w2w_employee_id, int):
             raise TypeError("w2w_employee_id must be an integer")
+        if w2w_employee_id == 0:
+            return None
         for employee in self.employees:
             if w2w_employee_id == employee.id:
                 return employee
@@ -82,6 +85,8 @@ class Client:
     def get_position_by_id(self, position_id: int) -> Optional[Position]:
         if not isinstance(position_id, int):
             raise TypeError("position_id must be an integer")
+        if position_id == 0:
+            return None
         for position in self.positions:
             if position_id == position.id:
                 return position
@@ -96,6 +101,8 @@ class Client:
     def get_category_by_id(self, category_id: int) -> Optional[Category]:
         if not isinstance(category_id, int):
             raise TypeError("category_id must be an integer")
+        if category_id == 0:
+            return None
         for category in self.categories:
             if category_id == category.id:
                 return category
