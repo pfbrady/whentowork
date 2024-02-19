@@ -1,5 +1,6 @@
+import datetime
 from logging import Logger
-from typing import Union, List
+from typing import List, Tuple, Optional
 from datetime import date
 from .adapter import Adapter
 from .models import Employee, Category, Position, Shift, TimeOff
@@ -44,6 +45,9 @@ class Client:
                 updated = True
         return updated
 
+    def _init_categories(self) -> None:
+        self.categories = self._adapter.get_from_endpoint('CategoryList')
+
     def _update_categories(self) -> bool:
         updated_categories = self._adapter.get_from_endpoint('CategoryList')
         updated = False
@@ -53,9 +57,6 @@ class Client:
                 updated = True
         return updated
 
-    def _init_categories(self) -> None:
-        self.categories = self._adapter.get_from_endpoint('CategoryList')
-
     def _add_emp_pos_cat_to_shift(self, shift: Shift) -> None:
         shift.employee = self.get_employee_by_id(shift.w2w_employee_id)
         shift.position = self.get_position_by_id(shift.position_id)
@@ -64,64 +65,85 @@ class Client:
     def _add_emp_to_timeoff(self, timeoff: TimeOff) -> None:
         timeoff.employee = self.get_employee_by_id(timeoff.w2w_employee_id)
 
-    def get_employee_by_id(self, w2w_employee_id: int) -> Union[Employee, None]:
+    def get_employee_by_id(self, w2w_employee_id: int) -> Optional[Employee]:
         if not isinstance(w2w_employee_id, int):
             raise TypeError("w2w_employee_id must be an integer")
         for employee in self.employees:
-            if w2w_employee_id == employee.w2w_employee_id:
+            if w2w_employee_id == employee.id:
                 return employee
 
         updated = self._update_employees()
         if updated:
             for employee in self.employees:
-                if w2w_employee_id == employee.w2w_employee_id:
+                if w2w_employee_id == employee.id:
                     return employee
         return None
 
-    def get_position_by_id(self, position_id: int) -> Union[Position, None]:
+    def get_position_by_id(self, position_id: int) -> Optional[Position]:
         if not isinstance(position_id, int):
             raise TypeError("position_id must be an integer")
         for position in self.positions:
-            if position_id == position.position_id:
+            if position_id == position.id:
                 return position
 
         updated = self._update_positions()
         if updated:
             for position in self.positions:
-                if position_id == position.position_id:
+                if position_id == position.id:
                     return position
         return None
 
-    def get_category_by_id(self, category_id: int) -> Union[Category, None]:
+    def get_category_by_id(self, category_id: int) -> Optional[Category]:
         if not isinstance(category_id, int):
             raise TypeError("category_id must be an integer")
         for category in self.categories:
-            if category_id == category.category_id:
+            if category_id == category.id:
                 return category
 
         updated = self._update_categories()
         if updated:
             for category in self.categories:
-                if category_id == category.category_id:
+                if category_id == category.id:
                     return category
         return None
 
     def get_shifts_by_date(self, start_date: date, end_date: date) -> List[Shift]:
-        if not isinstance(start_date, date):
-            raise TypeError("start_date must be of type datetime.date")
-        if not isinstance(end_date, date):
-            raise TypeError("end_date must be of type datetime.date")
-        shifts = self._adapter.get_from_endpoint('AssignedShiftList', start_date, end_date)
+        self.validate_dates(start_date, end_date)
+        shifts = []
+        for date_partition in self.request_date_partitions(start_date, end_date):
+            shifts.extend(self._adapter.get_from_endpoint('AssignedShiftList', date_partition[0], date_partition[1]))
         for shift in shifts:
             self._add_emp_pos_cat_to_shift(shift)
         return shifts
 
     def get_timeoff_by_date(self, start_date: date, end_date: date) -> List[TimeOff]:
+        self.validate_dates(start_date, end_date)
+        timeoff_requests = []
+        for date_partition in self.request_date_partitions(start_date, end_date):
+            timeoff_requests.extend(self._adapter.get_from_endpoint(
+                'ApprovedTimeOff', date_partition[0], date_partition[1]))
+        for request in timeoff_requests:
+            self._add_emp_to_timeoff(request)
+        return timeoff_requests
+
+    @staticmethod
+    def validate_dates(start_date: date, end_date: date) -> None:
         if not isinstance(start_date, date):
             raise TypeError("start_date must be of type datetime.date")
         if not isinstance(end_date, date):
             raise TypeError("end_date must be of type datetime.date")
-        timeoff_requests = self._adapter.get_from_endpoint('ApprovedTimeOff', start_date, end_date)
-        for request in timeoff_requests:
-            self._add_emp_to_timeoff(request)
-        return timeoff_requests
+        if start_date > end_date:
+            raise ValueError("start_date before end_date")
+        if end_date - start_date > datetime.timedelta(365*3):
+            raise ValueError("Time difference between start_date and end_date cannot exceed 3 years")
+
+    @staticmethod
+    def request_date_partitions(start_date: date, end_date: date) -> List[Tuple]:
+        moving_start_date = start_date
+        date_partition = []
+        while end_date - moving_start_date > datetime.timedelta(31):
+            date_partition.append((moving_start_date, moving_start_date + datetime.timedelta(31)))
+            moving_start_date += datetime.timedelta(32)
+        date_partition.append((moving_start_date, end_date))
+        return date_partition
+

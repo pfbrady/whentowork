@@ -45,7 +45,7 @@ class Shift(TypedDict):
     START_TIME: str
     END_DATE: str
     END_TIME: str
-    DURATION: int
+    DURATION: float
     DESCRIPTION: str
     POSITION_ID: int
     POSITION_NAME: str
